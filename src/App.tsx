@@ -10,10 +10,17 @@ export default function ArbeitszeitRechner() {
     const [aktuellerStundenstand, setAktuellerStundenstand] = useState("43:01");
     const [sollarbeitszeit, setSollarbeitszeit] = useState("07:48");
     const [ergebnis, setErgebnis] = useState<string | null>(null);
+    const [rechenweg, setRechenweg] = useState<string | null>(null);
 
     function zeitStringZuMinuten(zeit: string): number {
         const [h, m] = zeit.split(/[:.]/).map(Number);
         return h * 60 + m;
+    }
+
+    function minutenZuZeitString(min: number): string {
+        const h = Math.floor(min / 60);
+        const m = min % 60;
+        return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
     }
 
     function berechneFeierabend() {
@@ -26,14 +33,26 @@ export default function ArbeitszeitRechner() {
         const arbeitszeitHeute = soll - differenz;
 
         let pause = 0;
-        if (arbeitszeitHeute > 6 * 60) pause = 30;
         if (arbeitszeitHeute > 9 * 60) pause = 45;
+        else if (arbeitszeitHeute > 6 * 60) pause = 30;
 
         const feierabendMinuten = start + arbeitszeitHeute + pause;
 
-        const stunden = Math.floor(feierabendMinuten / 60);
-        const minuten = feierabendMinuten % 60;
-        setErgebnis(`${stunden.toString().padStart(2, "0")}:${minuten.toString().padStart(2, "0")}`);
+        const feierabend = minutenZuZeitString(feierabendMinuten);
+        setErgebnis(feierabend);
+
+        const rechnung = [
+            `Aktueller Stand: ${minutenZuZeitString(aktuell)} Minuten`,
+            `Ziel: ${minutenZuZeitString(ziel)} Minuten`,
+            `Differenz: ${differenz} Minuten`,
+            `Reguläre Tagesarbeitszeit: ${minutenZuZeitString(soll)} Minuten`,
+            `Netto-Arbeitszeit heute: ${arbeitszeitHeute} Minuten`,
+            `Pausenregelung angewendet: ${pause} Minuten`,
+            `Startzeit: ${startzeit}`,
+            `Feierabendzeit: ${feierabend}`
+        ];
+
+        setRechenweg(rechnung.join("\n"));
     }
 
     return (
@@ -64,6 +83,12 @@ export default function ArbeitszeitRechner() {
                         <div className="text-xl font-semibold pt-2">
                             🕓 Du kannst um <span className="text-green-600">{ergebnis}</span> Feierabend machen.
                         </div>
+                    )}
+                    {rechenweg && (
+                        <pre
+                            className="bg-gray-100 text-sm p-3 rounded whitespace-pre-wrap mt-4 border border-gray-300">
+                            {rechenweg}
+                        </pre>
                     )}
                 </CardContent>
             </Card>
