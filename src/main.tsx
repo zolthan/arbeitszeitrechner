@@ -5,6 +5,6 @@ import ArbeitszeitRechner from "./App";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
-        <ArbeitszeitRechner />
+        <ArbeitszeitRechner/>
     </React.StrictMode>
 );
