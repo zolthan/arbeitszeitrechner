@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {Card, CardContent} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
@@ -11,6 +11,21 @@ export default function ArbeitszeitRechner() {
     const [sollarbeitszeit, setSollarbeitszeit] = useState("07:48");
     const [ergebnis, setErgebnis] = useState<string | null>(null);
     const [rechenweg, setRechenweg] = useState<string | null>(null);
+
+    useEffect(() => {
+        const gespeicherteStartzeit = localStorage.getItem("startzeit");
+        const gespeicherterStundenstand = localStorage.getItem("stundenstand");
+        if (gespeicherteStartzeit) setStartzeit(gespeicherteStartzeit);
+        if (gespeicherterStundenstand) setAktuellerStundenstand(gespeicherterStundenstand);
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("startzeit", startzeit);
+    }, [startzeit]);
+
+    useEffect(() => {
+        localStorage.setItem("stundenstand", aktuellerStundenstand);
+    }, [aktuellerStundenstand]);
 
     function zeitStringZuMinuten(zeit: string): number {
         const [h, m] = zeit.split(/[:.]/).map(Number);
@@ -57,6 +72,7 @@ export default function ArbeitszeitRechner() {
 
     return (
         <div className="max-w-xl mx-auto mt-10 space-y-4 p-4">
+            <h1 className="text-3xl font-bold text-center mb-6">🕒 Arbeitszeit-Rechner</h1>
             <Card>
                 <CardContent className="space-y-4 pt-6">
                     <div className="space-y-2">
@@ -85,8 +101,7 @@ export default function ArbeitszeitRechner() {
                         </div>
                     )}
                     {rechenweg && (
-                        <pre
-                            className="bg-gray-100 text-sm p-3 rounded whitespace-pre-wrap mt-4 border border-gray-300">
+                        <pre className="bg-gray-100 text-sm p-3 rounded whitespace-pre-wrap mt-4 border border-gray-300">
                             {rechenweg}
                         </pre>
                     )}
