@@ -12,6 +12,10 @@ export default function ArbeitszeitRechner() {
     const [ergebnis, setErgebnis] = useState<string | null>(null);
     const [rechenweg, setRechenweg] = useState<string | null>(null);
 
+    const [waswaereStart, setWaswaereStart] = useState("06:50");
+    const [waswaereEnde, setWaswaereEnde] = useState("15:30");
+    const [waswaereErgebnis, setWaswaereErgebnis] = useState<string | null>(null);
+
     useEffect(() => {
         const gespeicherteStartzeit = localStorage.getItem("startzeit");
         const gespeicherterStundenstand = localStorage.getItem("stundenstand");
@@ -34,8 +38,9 @@ export default function ArbeitszeitRechner() {
 
     function minutenZuZeitString(min: number): string {
         const h = Math.floor(min / 60);
-        const m = min % 60;
-        return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+        const m = Math.abs(min % 60);
+        const vorzeichen = min < 0 ? "-" : "";
+        return `${vorzeichen}${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
     }
 
     function berechneFeierabend() {
@@ -52,7 +57,6 @@ export default function ArbeitszeitRechner() {
         else if (arbeitszeitHeute > 6 * 60) pause = 30;
 
         const feierabendMinuten = start + arbeitszeitHeute + pause;
-
         const feierabend = minutenZuZeitString(feierabendMinuten);
         setErgebnis(feierabend);
 
@@ -68,6 +72,22 @@ export default function ArbeitszeitRechner() {
         ];
 
         setRechenweg(rechnung.join("\n"));
+    }
+
+    function berechneWasWaereWenn() {
+        const start = zeitStringZuMinuten(waswaereStart);
+        const ende = zeitStringZuMinuten(waswaereEnde);
+        let brutto = ende - start;
+
+        let pause = 0;
+        if (brutto > 9 * 60) pause = 45;
+        else if (brutto > 6 * 60) pause = 30;
+
+        const netto = brutto - pause;
+        const soll = zeitStringZuMinuten(sollarbeitszeit);
+        const diff = netto - soll;
+
+        setWaswaereErgebnis(`Nettoarbeitszeit: ${minutenZuZeitString(netto)}\nRegulär: ${minutenZuZeitString(soll)}\n→ Überzeit: ${minutenZuZeitString(diff)}`);
     }
 
     return (
@@ -103,6 +123,26 @@ export default function ArbeitszeitRechner() {
                     {rechenweg && (
                         <pre className="bg-gray-100 text-sm p-3 rounded whitespace-pre-wrap mt-4 border border-gray-300">
                             {rechenweg}
+                        </pre>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardContent className="space-y-4 pt-6">
+                    <h2 className="text-xl font-semibold">Was wäre wenn?</h2>
+                    <div className="space-y-2">
+                        <Label>Startzeit</Label>
+                        <Input type="time" value={waswaereStart} onChange={e => setWaswaereStart(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Feierabendzeit</Label>
+                        <Input type="time" value={waswaereEnde} onChange={e => setWaswaereEnde(e.target.value)} />
+                    </div>
+                    <Button onClick={berechneWasWaereWenn}>Überzeit berechnen</Button>
+                    {waswaereErgebnis && (
+                        <pre className="bg-gray-100 text-sm p-3 rounded whitespace-pre-wrap mt-4 border border-gray-300">
+                            {waswaereErgebnis}
                         </pre>
                     )}
                 </CardContent>
